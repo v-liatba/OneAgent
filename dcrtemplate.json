@@ -1,0 +1,44 @@
+                                             {
+                                                 "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                                                 "contentVersion": "1.0.0.0",
+                                                 "parameters": {
+                                                     "location": {
+                                                         "type": "string"
+                                                     },
+                                                     "workspaceId": {
+                                                         "type": "string"
+                                                     }
+                                                 },
+                                                 "variables": {},
+                                                 "resources": [{
+                                                     "type": "Microsoft.Insights/dataCollectionRules",
+                                                     "name": "defaultdataCollectionRule",
+                                                     "location": "[parameters('location')]",
+                                                     "apiVersion": "2019-11-01-preview",
+                                                     "properties": {
+                                                         "dataSources": {
+                                                             "extensions": [{
+                                                                 "stream": "Microsoft-ASC-ExtensionData",
+                                                                 "extensionName": "SecurityMonitoringForLinux",
+                                                                 "extensionSettings": {},
+                                                                 "name": "AscLinuxDataSource"
+                                                             }]
+                                                         },
+                                                         "destinations": {
+                                                             "logAnalytics": [{
+                                                                 "workspaceResourceId": "[parameters('workspaceId')]",
+                                                                 "workspaceId": "[reference(parameters('workspaceId'), '2015-03-20').customerId]",
+                                                                 "name": "LogAnalyticsDest"
+                                                             }]
+                                                         },
+                                                         "dataFlows": [{
+                                                             "streams": [
+                                                                 "Microsoft-ASC-ExtensionData"
+                                                             ],
+                                                             "destinations": [
+                                                                 "LogAnalyticsDest"
+                                                             ]
+                                                         }]
+                                                     }
+                                                 }]
+                                             }
