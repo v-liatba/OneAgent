@@ -100,10 +100,6 @@
                                         "templateLink": {
                                             "uri": "https://raw.githubusercontent.com/v-liatba/OneAgent/master/wstemplate.json",
                                             "contentVersion": "1.0.0.0"
-                                        },
-                                        "parametersLink": {
-                                            "uri": "https://raw.githubusercontent.com/v-liatba/OneAgent/master/wstemplateparameters.json",
-                                            "contentVersion": "1.0.0.0"
                                         }
                                     }
                                 },
