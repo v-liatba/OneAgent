@@ -1,0 +1,21 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vmName": {
+      "value": "[parameters('vmName')]"
+    },
+    "location": {
+      "value": "[parameters('location')]"
+    },
+    "vmExtensionPublisher": {
+      "value": "[variables('vmExtensionPublisher')]"
+    },
+    "vmExtensionType": {
+      "value": "[variables('vmExtensionType')]"
+    },
+    "vmExtensionTypeHandlerVersion": {
+      "value": "[variables('vmExtensionTypeHandlerVersion')]"
+    }
+  }
+}
