@@ -98,7 +98,7 @@
                                     "properties": {
                                         "mode": "Incremental",
                                         "templateLink": {
-                                            "uri": "https://  Published file ",
+                                            "uri": "https://raw.githubusercontent.com/v-liatba/OneAgent/master/wstemplate.json",
                                             "contentVersion": "1.0.0.0"
                                         }
 
@@ -118,11 +118,11 @@
                                         },
                                         "mode": "Incremental",
                                         "templateLink": {
-                                            "uri": "https:// ",
+                                            "uri": "https://raw.githubusercontent.com/v-liatba/OneAgent/master/dcrtemplate.json ",
                                             "contentVersion": "1.0.0.0"
                                         },
                                         "parametersLink": {
-                                            "uri": "https:// ",
+                                            "uri": "https://raw.githubusercontent.com/v-liatba/OneAgent/master/dcrtemplateparameters.json ",
                                             "contentVersion": "1.0.0.0"
                                         }
                                     }
@@ -141,11 +141,11 @@
                                         },
                                         "mode": "Incremental",
                                         "templateLink": {
-                                            "uri": "https:// ",
+                                            "uri": "https://raw.githubusercontent.com/v-liatba/OneAgent/master/dcratemplate.json",
                                             "contentVersion": "1.0.0.0"
                                         },
                                         "parametersLink": {
-                                            "uri": "https:// ",
+                                            "uri": "https://raw.githubusercontent.com/v-liatba/OneAgent/master/dcratemplateparameters.json",
                                             "contentVersion": "1.0.0.0"
                                         }
                                     }
@@ -164,11 +164,11 @@
                                         },
                                         "mode": "Incremental",
                                         "templateLink": {
-                                            "uri": "https:// ",
+                                            "uri": "https://raw.githubusercontent.com/v-liatba/OneAgent/master/amlatemplate.json",
                                             "contentVersion": "1.0.0.0"
                                         },
                                         "parametersLink": {
-                                            "uri": "https:// ",
+                                            "uri": "https://raw.githubusercontent.com/v-liatba/OneAgent/master/amlatemplateparameters.json",
                                             "contentVersion": "1.0.0.0"
                                         }
                                     }
@@ -187,11 +187,11 @@
                                         },
                                         "mode": "Incremental",
                                         "templateLink": {
-                                            "uri": "https:// ",
+                                            "uri": "https://raw.githubusercontent.com/v-liatba/OneAgent/master/aslatemplate.json",
                                             "contentVersion": "1.0.0.0"
                                         },
                                         "parametersLink": {
-                                            "uri": "https:// ",
+                                            "uri": "https://raw.githubusercontent.com/v-liatba/OneAgent/master/aslatemplateparameters.json",
                                             "contentVersion": "1.0.0.0"
                                         }
                                     }
