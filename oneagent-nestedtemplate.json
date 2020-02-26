@@ -1,0 +1,593 @@
+{
+    "properties": {
+        "displayName": "Deploy One Agent monitor onaboarding to Azure Security Center",
+        "policyType": "Custom",
+        "mode": "Indexed",
+        "description": "This policy ensures that onboarding is enabled on virtual machines. It will automatically create a resource group and log analytics workspace in the same region as the virtual machine to store audit records.",
+        "metadata": {
+            "version": "1.0.0",
+            "category": "Security Center"
+        },
+        "policyRule": {
+            "if": {
+                "allOf": [{
+                        "field": "type",
+                        "equals": "Microsoft.Compute/virtualMachines"
+                    },
+                    {
+                        "field": "location",
+                        "equals": "eastus"
+                    },
+                    {
+                        "field": "Microsoft.Compute/virtualMachines/storageProfile.osDisk.osType",
+                        "equals": "Linux"
+                    }
+                ]
+            },
+            "then": {
+                "effect": "deployIfNotExists",
+                "details": {
+                    "type": "Microsoft.Compute/virtualMachines",
+                    "deploymentScope": "Subscription",
+                    "name": "current",
+                    "existenceCondition": {
+                        "allOf": [{
+                                "field": "Microsoft.Compute/virtualMachines/extensions/type",
+                                "equals": "OmsAgentForLinux"
+                            },
+                            {
+                                "field": "Microsoft.Compute/virtualMachines/extensions/publisher",
+                                "equals": "Microsoft.EnterpriseCloud.Monitoring"
+                            },
+                            {
+                                "field": "Microsoft.Compute/virtualMachines/extensions/provisioningState",
+                                "equals": "Succeeded"
+                            }
+                        ]
+                    },
+                    "roleDefinitionIds": [
+                        "/providers/microsoft.authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c",
+                        "/providers/microsoft.authorization/roleDefinitions/92aaf0da-9dab-42b6-94a3-d43ce8d16293"
+                    ],
+                    "deployment": {
+                        "location": "eastus",
+                        "properties": {
+                            "mode": "incremental",
+                            "template": {
+                                "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+                                "contentVersion": "1.0.0.1",
+                                "parameters": {
+                                    "location": {
+                                        "type": "string"
+                                    },
+                                    "vmName": {
+                                        "type": "string"
+                                    },
+                                    "resourceGroup": {
+                                        "type": "string"
+                                    }
+                                },
+                                "variables": {
+                                    "defaultRGName": "[concat('defaultresourcegroup-', variables('displayName')[variables('pairedLocations')[parameters('location')]])]",
+                                    "defaultRGLocation": "[variables('pairedLocations')[parameters('location')]]",
+                                    "subscriptionId": "[subscription().subscriptionId]",
+                                    "locationCode": "[variables('displayName')[variables('pairedLocations')[parameters('location')]]]",
+                                    "dataCollectionRuleId": "[concat('/subscriptions/', variables('subscriptionId'), '/resourceGroups/', variables('defaultRGName'), '/providers/Microsoft.Insights/dataCollectionRules/', 'defaultDataCollectionRules')]",
+                                    "displayName": {
+                                        "eastus": "EUS"
+                                    },
+                                    "pairedLocations": {
+                                        "eastus": "eastus"
+                                    },
+                                    "deployWorkspace": "[concat('deployWorkspace-', uniqueString(deployment().name))]",
+                                    "deployIdentitySystem": "[concat('deployIdentitySystem-', uniqueString(deployment().name))]",
+                                    "deployDataCollectionRule": "[concat('deployDataCollectionRule-', uniqueString(deployment().name))]",
+                                    "deployDataCollectionRulesAssociation": "[concat('deployDataCollectionRulesAssociation-', uniqueString(deployment().name))]",
+                                    "deployAzureMonitorLinuxAgent": "[concat('deployAzureMonitorLinuxAgent-', uniqueString(deployment().name))]",
+                                    "deployAzureSecurityLinuxAgent": "[concat('deployAzureSecurityLinuxAgent-', uniqueString(deployment().name))]",
+                                    "workspaceName": "[concat('defaultWorkspace-', variables('subscriptionId'),'-', variables('locationCode'))]",
+                                    "workspaceId": "[concat('/subscriptions/', variables('subscriptionId'), '/resourceGroups/', variables('defaultRGName'), '/providers/Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]",
+                                    "vmResourceId": "[concat('/subscriptions/', variables('subscriptionId'), '/resourceGroups/', parameters('resourceGroup'), '/providers/Microsoft.Compute/virtualMachines/', parameters('vmName'))]",
+                                    "vmExtensionPublisher": "Microsoft.Azure.Monitor",
+                                    "vmExtensionType": "AzureMonitorLinuxAgent",
+                                    "vmExtensionTypeHandlerVersion": "0.9",
+                                    "vmExtensionPublisherSecurity": "Microsoft.Azure.Security.Monitoring",
+                                    "vmExtensionTypeSecurity": "AzureSecurityLinuxAgent",
+                                    "vmExtensionTypeHandlerVersionSecurity": "0.1"
+                                },
+                                "resources": [{
+                                        "type": "Microsoft.Resources/resourceGroups",
+                                        "apiVersion": "2019-05-01",
+                                        "name": "[variables('defaultRGName')]",
+                                        "location": "[variables('defaultRGLocation')]",
+                                        "properties": {}
+                                    },
+                                    {
+                                        "type": "Microsoft.Resources/deployments",
+                                        "apiVersion": "2017-05-10",
+                                        "name": "[variables('deployWorkspace')]",
+                                        "resourceGroup": "[variables('defaultRGName')]",
+                                        "dependsOn": [
+                                            "[resourceId('Microsoft.Resources/resourceGroups', variables('defaultRGName'))]"
+                                        ],
+                                        "properties": {
+                                            "mode": "Incremental",
+                                            "template": {
+                                                "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                                                "contentVersion": "1.0.0.0",
+                                                "parameters": {},
+                                                "variables": {},
+                                                "resources": [{
+                                                    "apiVersion": "2015-11-01-preview",
+                                                    "type": "Microsoft.OperationalInsights/workspaces",
+                                                    "name": "[variables('workspaceName')]",
+                                                    "location": "[variables('defaultRGLocation')]",
+                                                    "properties": {
+                                                        "sku": {
+                                                            "name": "pernode"
+                                                        },
+                                                        "retentionInDays": 30,
+                                                        "features": {
+                                                            "searchVersion": 1
+                                                        }
+                                                    }
+                                                }]
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "apiVersion": "2017-05-10",
+                                        "name": "[variables('deployIdentitySystem')]",
+                                        "type": "Microsoft.Resources/deployments",
+                                        "resourceGroup": "[parameters('resourceGroup')]",
+                                        "dependsOn": [
+                                            "[variables('deployWorkspace')]"
+                                        ],
+                                        "properties": {
+                                            "expressionEvaluationOptions": {
+                                                "scope": "inner"
+                                            },
+                                            "mode": "Incremental",
+                                            "parameters": {
+                                                "vmName": {
+                                                    "value": "[parameters('vmName')]"
+                                                }
+                                            },
+                                            "template": {
+                                                "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                                                "contentVersion": "1.0.0.0",
+                                                "parameters": {
+                                                    "vmName": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "variables": {},
+                                                "resources": [{
+                                                    "type": "Microsoft.Compute/virtualMachines",
+                                                    "name": "[parameters('vmName')]",
+                                                    "location": "[resourceGroup().location]",
+                                                    "apiVersion": "2018-06-01",
+                                                    "identity": {
+                                                        "type": "SystemAssigned"
+                                                    }
+                                                }]
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "apiVersion": "2017-05-10",
+                                        "name": "[variables('deployDataCollectionRule')]",
+                                        "type": "Microsoft.Resources/deployments",
+                                        "resourceGroup": "[variables('defaultRGName')]",
+                                        "dependsOn": [
+                                            "[variables('deployWorkspace')]"
+                                        ],
+                                        "properties": {
+                                            "expressionEvaluationOptions": {
+                                                "scope": "inner"
+                                            },
+                                            "mode": "Incremental",
+                                            "parameters": {
+                                                "location": {
+                                                    "value": "[parameters('location')]"
+                                                },
+                                                "workspaceId": {
+                                                    "value": "[variables('workspaceId')]"
+                                                }
+                                            },
+                                            "template": {
+                                                "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                                                "contentVersion": "1.0.0.0",
+                                                "parameters": {
+                                                    "location": {
+                                                        "type": "string"
+                                                    },
+                                                    "workspaceId": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "variables": {},
+                                                "resources": [{
+                                                    "type": "Microsoft.Insights/dataCollectionRules",
+                                                    "name": "defaultDataCollectionRules",
+                                                    "location": "[parameters('location')]",
+                                                    "apiVersion": "2019-11-01-preview",
+                                                    "properties": {
+                                                        "dataSources": {
+                                                            "extensions": [{
+                                                                "stream": "Security.Microsoft-Security-ExtensionData",
+                                                                "extensionName": " AzureSecurityLinuxAgent",
+                                                                "extensionSettings": {},
+                                                                "name": "AscLinuxDataSource",
+                                                                "dataSources": {
+                                                                    "performanceCounters": [],
+                                                                    "windowsEventLogs": [],
+                                                                    "syslog": [{
+                                                                            "stream": "LogManagement.Microsoft-Syslog",
+                                                                            "facilityName": "kern",
+                                                                            "logLevels": [
+                                                                                "Debug",
+                                                                                "Critical",
+                                                                                "Emergency"
+                                                                            ],
+                                                                            "name": "syslogKern"
+                                                                        },
+                                                                        {
+                                                                            "stream": "LogManagement.Microsoft-Syslog",
+                                                                            "facilityName": "auth",
+                                                                            "logLevels": [
+                                                                                "Debug",
+                                                                                "Critical",
+                                                                                "Emergency"
+                                                                            ],
+                                                                            "name": "syslogAuth"
+                                                                        },
+                                                                        {
+                                                                            "stream": "LogManagement.Microsoft-Syslog",
+                                                                            "facilityName": "authpriv",
+                                                                            "logLevels": [
+                                                                                "Debug",
+                                                                                "Critical",
+                                                                                "Emergency"
+                                                                            ],
+                                                                            "name": "syslogAuthpriv"
+                                                                        },
+                                                                        {
+                                                                            "stream": "LogManagement.Microsoft-Syslog",
+                                                                            "facilityName": "cron",
+                                                                            "logLevels": [
+                                                                                "Debug",
+                                                                                "Critical",
+                                                                                "Emergency"
+                                                                            ],
+                                                                            "name": "syslogCron"
+                                                                        },
+                                                                        {
+                                                                            "stream": "LogManagement.Microsoft-Syslog",
+                                                                            "facilityName": "user",
+                                                                            "logLevels": [
+                                                                                "Debug",
+                                                                                "Critical",
+                                                                                "Emergency"
+                                                                            ],
+                                                                            "name": "syslogUser"
+                                                                        },
+                                                                        {
+                                                                            "stream": "LogManagement.Microsoft-Syslog",
+                                                                            "facilityName": "daemon",
+                                                                            "logLevels": [
+                                                                                "Debug",
+                                                                                "Critical",
+                                                                                "Emergency"
+                                                                            ],
+                                                                            "name": "syslogDaemon"
+                                                                        },
+                                                                        {
+                                                                            "stream": "LogManagement.Microsoft-Syslog",
+                                                                            "facilityName": "syslog",
+                                                                            "logLevels": [
+                                                                                "Debug",
+                                                                                "Critical",
+                                                                                "Emergency"
+                                                                            ],
+                                                                            "name": "syslogSyslog"
+                                                                        },
+                                                                        {
+                                                                            "stream": "LogManagement.Microsoft-Syslog",
+                                                                            "facilityName": "local0",
+                                                                            "logLevels": [
+                                                                                "Debug",
+                                                                                "Critical",
+                                                                                "Emergency"
+                                                                            ],
+                                                                            "name": "syslogLocal0"
+                                                                        }
+                                                                    ],
+                                                                    "extensions": [{
+                                                                            "name": "myExtensionDataSource1",
+                                                                            "stream": "LogManagement.OPERATION_BLOB",
+                                                                            "extensionName": "AzureSecurityLinuxAgent",
+                                                                            "extensionSettings": {
+                                                                                "auditLevel": "4",
+                                                                                "maxQueueSize": 1234
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "myExtensionDataSource2",
+                                                                            "stream": "Security.SECURITY_BASELINE_BLOB",
+                                                                            "extensionName": "AzureSecurityLinuxAgent",
+                                                                            "extensionSettings": {
+                                                                                "auditLevel": "4",
+                                                                                "maxQueueSize": 1234
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "myExtensionDataSource3",
+                                                                            "stream": "Security.SECURITY_BASELINE_SUMMARY_BLOB",
+                                                                            "extensionName": "AzureSecurityLinuxAgent",
+                                                                            "extensionSettings": {
+                                                                                "auditLevel": "4",
+                                                                                "maxQueueSize": 1234
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "myExtensionDataSource4",
+                                                                            "stream": "LogManagement.PROCESS_INVESTIGATOR_BLOB",
+                                                                            "extensionName": "AzureSecurityLinuxAgent",
+                                                                            "extensionSettings": {
+                                                                                "auditLevel": "4",
+                                                                                "maxQueueSize": 1234
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "myExtensionDataSource5",
+                                                                            "stream": "Security.LINUX_AUDITD_BLOB",
+                                                                            "extensionName": "AzureSecurityLinuxAgent",
+                                                                            "extensionSettings": {
+                                                                                "auditLevel": "4",
+                                                                                "maxQueueSize": 1234
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "myExtensionDataSource6",
+                                                                            "stream": "LogManagement.HEALTH_ASSESSMENT_BLOB",
+                                                                            "extensionName": "AzureSecurityLinuxAgent",
+                                                                            "extensionSettings": {
+                                                                                "auditLevel": "4",
+                                                                                "maxQueueSize": 1234
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            }]
+                                                        },
+                                                        "destinations": {
+                                                            "logAnalytics": [{
+                                                                "workspaceResourceId": "[parameters('workspaceId')]",
+                                                                "workspaceId": "[reference(parameters('workspaceId'), '2015-03-20').customerId]",
+                                                                "name": "LogAnalyticsDest"
+                                                            }]
+                                                        },
+                                                        "dataFlows": [{
+                                                            "streams": [
+                                                                "Microsoft-Syslog",
+                                                                "OPERATION_BLOB",
+                                                                "LINUX_AUDITD_BLOB",
+                                                                "SECURITY_BASELINE_BLOB",
+                                                                "HEALTH_ASSESSMENT_BLOB",
+                                                                "PROCESS_INVESTIGATOR_BLOB"
+                                                            ],
+                                                            "destinations": [
+                                                                "LogAnalyticsDest"
+                                                            ]
+                                                        }]
+                                                    }
+                                                }]
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "apiVersion": "2017-05-10",
+                                        "name": "[variables('deployDataCollectionRulesAssociation')]",
+                                        "type": "Microsoft.Resources/deployments",
+                                        "resourceGroup": "[parameters('resourceGroup')]",
+                                        "dependsOn": [
+                                            "[variables('deployDataCollectionRule')]"
+                                        ],
+                                        "properties": {
+                                            "expressionEvaluationOptions": {
+                                                "scope": "inner"
+                                            },
+                                            "mode": "Incremental",
+                                            "parameters": {
+                                                "dataCollectionRuleId": {
+                                                    "value": "[variables('dataCollectionRuleId')]"
+                                                },
+                                                "vmName": {
+                                                    "value": "[parameters('vmName')]"
+                                                }
+                                            },
+                                            "template": {
+                                                "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                                                "contentVersion": "1.0.0.0",
+                                                "parameters": {
+                                                    "dataCollectionRuleId": {
+                                                        "type": "string"
+                                                    },
+                                                    "vmName": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "variables": {},
+                                                "resources": [{
+                                                    "type": "Microsoft.Compute/virtualMachines/providers/dataCollectionRuleAssociations",
+                                                    "name": "[concat(parameters('vmName'),'/Microsoft.Insights/', 'defaultDataCollectionRuleAssociation')]",
+                                                    "apiVersion": "2019-11-01-preview",
+                                                    "properties": {
+                                                        "dataCollectionRuleId": "[parameters('dataCollectionRuleId')]"
+                                                    }
+                                                }]
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "apiVersion": "2017-05-10",
+                                        "name": "[variables('deployAzureMonitorLinuxAgent')]",
+                                        "type": "Microsoft.Resources/deployments",
+                                        "resourceGroup": "[parameters('resourceGroup')]",
+                                        "dependsOn": [
+                                            "[variables('deployDataCollectionRule')]"
+                                        ],
+                                        "properties": {
+                                            "expressionEvaluationOptions": {
+                                                "scope": "inner"
+                                            },
+                                            "mode": "Incremental",
+                                            "parameters": {
+                                                "vmName": {
+                                                    "value": "[parameters('vmName')]"
+                                                },
+                                                "location": {
+                                                    "value": "[parameters('location')]"
+                                                },
+                                                "vmExtensionPublisher": {
+                                                    "value": "[variables('vmExtensionPublisher')]"
+                                                },
+                                                "vmExtensionType": {
+                                                    "value": "[variables('vmExtensionType')]"
+                                                },
+                                                "vmExtensionTypeHandlerVersion": {
+                                                    "value": "[variables('vmExtensionTypeHandlerVersion')]"
+                                                }
+                                            },
+                                            "template": {
+                                                "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                                                "contentVersion": "1.0.0.0",
+                                                "parameters": {
+                                                    "vmName": {
+                                                        "type": "string"
+                                                    },
+                                                    "location": {
+                                                        "type": "string"
+                                                    },
+                                                    "vmExtensionPublisher": {
+                                                        "type": "string"
+                                                    },
+                                                    "vmExtensionType": {
+                                                        "type": "string"
+                                                    },
+                                                    "vmExtensionTypeHandlerVersion": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "variables": {},
+                                                "resources": [{
+                                                    "type": "Microsoft.Compute/virtualMachines/extensions",
+                                                    "name": "[concat(parameters('vmName'), '/', 'AzureMonitorLinuxAgent')]",
+                                                    "apiVersion": "2019-03-01",
+                                                    "location": "[parameters('location')]",
+                                                    "properties": {
+                                                        "publisher": "[parameters('vmExtensionPublisher')]",
+                                                        "type": "[parameters('vmExtensionType')]",
+                                                        "typeHandlerVersion": "[parameters('vmExtensionTypeHandlerVersion')]",
+                                                        "autoUpgradeMinorVersion": true,
+                                                        "settings": {}
+                                                    }
+                                                }]
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "apiVersion": "2017-05-10",
+                                        "name": "[variables('deployAzureSecurityLinuxAgent')]",
+                                        "type": "Microsoft.Resources/deployments",
+                                        "resourceGroup": "[parameters('resourceGroup')]",
+                                        "dependsOn": [
+                                            "[variables('deployDataCollectionRule')]"
+                                        ],
+                                        "properties": {
+                                            "expressionEvaluationOptions": {
+                                                "scope": "inner"
+                                            },
+                                            "mode": "Incremental",
+                                            "parameters": {
+                                                "vmName": {
+                                                    "value": "[parameters('vmName')]"
+                                                },
+                                                "location": {
+                                                    "value": "[parameters('location')]"
+                                                },
+                                                "vmExtensionPublisherSecurity": {
+                                                    "value": "[variables('vmExtensionPublisherSecurity')]"
+                                                },
+                                                "vmExtensionTypeSecurity": {
+                                                    "value": "[variables('vmExtensionTypeSecurity')]"
+                                                },
+                                                "vmExtensionTypeHandlerVersionSecurity": {
+                                                    "value": "[variables('vmExtensionTypeHandlerVersionSecurity')]"
+                                                }
+                                            },
+                                            "template": {
+                                                "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                                                "contentVersion": "1.0.0.0",
+                                                "parameters": {
+                                                    "vmName": {
+                                                        "type": "string"
+                                                    },
+                                                    "location": {
+                                                        "type": "string"
+                                                    },
+                                                    "vmExtensionPublisherSecurity": {
+                                                        "type": "string"
+                                                    },
+                                                    "vmExtensionTypeSecurity": {
+                                                        "type": "string"
+                                                    },
+                                                    "vmExtensionTypeHandlerVersionSecurity": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "variables": {},
+                                                "resources": [{
+                                                    "type": "Microsoft.Compute/virtualMachines/extensions",
+                                                    "name": "[concat(parameters('vmName'), '/', 'AzureSecurityLinuxAgent')]",
+                                                    "apiVersion": "2019-03-01",
+                                                    "location": "[parameters('location')]",
+                                                    "properties": {
+                                                        "publisher": "[parameters('vmExtensionPublisherSecurity')]",
+                                                        "type": "[parameters('vmExtensionTypeSecurity')]",
+                                                        "typeHandlerVersion": "[parameters('vmExtensionTypeHandlerVersionSecurity')]",
+                                                        "autoUpgradeMinorVersion": true,
+                                                        "settings": {},
+                                                        "protectedsettings": {
+                                                            "vsaIngestionEndpoint": "https://shavsadevsf01.westus2.cloudapp.azure.com:443/api/assets/{ASSETID}/scanOrders?api-version=v1",
+                                                            "vsaClientConfigURI": "https://shavsadevstrgtc1.blob.core.windows.net/tenants/validtenantconfig",
+                                                            "vsaIngestionAPIKey": "1219c206-b4d5-4ae6-83d0-9cc993aee5a5",
+                                                            "vsaManifestStoreEndpoint": "https://shavamanifestcusprod1.blob.core.windows.net/50a1a297-d97e-4c80-a44d-8fdeb2f7946e/"
+                                                        }
+                                                    }
+                                                }]
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            "parameters": {
+                                "location": {
+                                    "value": "[field('location')]"
+                                },
+                                "vmName": {
+                                    "value": "[field('name')]"
+                                },
+                                "resourceGroup": {
+                                    "value": "[resourceGroup().name]"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "parameters": {}
+    }
+}
