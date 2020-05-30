@@ -1,0 +1,63 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "tenantId": { "type": "string" },
+    "env": { "type": "string" },
+    "adfStorageBackupSubscriptionId": { "type": "string" },
+    "adfStorageBackupResourceGroupName": { "type": "string" },
+    "adfStorageRestoreSubscriptionId": { "type": "string" },
+    "adfStorageRestoreResourceGroupName": { "type": "string" }
+  },
+  "variables": {
+    "factoryName": "[concat('glob-rp-corruptionRecovery-core-', tolower(parameters('env')),'-df')]",
+    "factoryId": "[concat('Microsoft.DataFactory/factories/', variables('factoryName'))]",
+    "isPublicCloud": "[if(equals(parameters('tenantId'), '72f988bf-86f1-41af-91ab-2d7cd011db47'), 'Yes', 'No')]",
+    "adfStorageBackupResourceId": "[resourceId(parameters('adfStorageBackupSubscriptionId'),parameters('adfStorageBackupResourceGroupName'), 'Microsoft.Storage/storageAccounts' ,variables('adfStorageName'))]",
+    "adfStorageRestoreResourceId": "[resourceId(parameters('adfStorageRestoreSubscriptionId'),parameters('adfStorageRestoreResourceGroupName'), 'Microsoft.Storage/storageAccounts' ,variables('adfStorageName'))]",
+    "adfStorageBackupLink": "[concat(variables('adfStorageName'),'_backuplink')]",
+    "adfStorageRestoreLink": "[concat(variables('adfStorageName'),'_restorelink')]",
+    "adfStorageName": "[concat(variables('storagePrefix'), 'asc')]",
+    "storagePrefix": "[concat('glob', tolower(parameters('env')))]"
+  },
+  "resources": [
+    {
+      "condition": "[equals(variables('isPublicCloud'), 'Yes')]",
+      "name": "[concat(variables('factoryName'),'/',variables('adfStorageBackupLink'))]",
+      "type": "Microsoft.DataFactory/factories/linkedServices",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "annotations": [],
+        "type": "AzureStorage",
+        "typeProperties": {
+          "connectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('adfstorageName'),
+           ';BlobEndpoint=', reference(variables('asfstorageResourceId'), '2019-04-01').primaryEndpoints.blob,
+           ';AccountKey=',listKeys(variables('asfstorageResourceId'), '2019-04-01').keys[0].value)]"
+        }
+      },
+      "dependsOn": [
+        "[variables('factoryId')]",
+        "[concat('Microsoft.Storage/storageAccounts/', variables('adfStorageName'))]"
+      ]
+    },
+    {
+      "condition": "[equals(variables('isPublicCloud'), 'Yes')]",
+      "name": "[concat(variables('factoryName'),'/',variables('adfStorageRestoreLink'))]",
+      "type": "Microsoft.DataFactory/factories/linkedServices",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "annotations": [],
+        "type": "AzureStorage",
+        "typeProperties": {
+          "connectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('adfstorageName'),
+           ';BlobEndpoint=', reference(variables('asfstorageResourceId'), '2019-04-01').primaryEndpoints.blob,
+           ';AccountKey=',listKeys(variables('asfstorageResourceId'), '2019-04-01').keys[0].value)]"
+        }
+      },
+      "dependsOn": [
+        "[variables('factoryId')]",
+        "[concat('Microsoft.Storage/storageAccounts/', variables('adfstorageName'))]"
+      ]
+    }
+  ]
+}
