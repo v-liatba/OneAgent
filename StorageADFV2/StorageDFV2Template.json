@@ -1,0 +1,98 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "storageFactoryTemplate": { "type": "string" },
+    "storageFactoryParameters": { "type": "string" },
+    "storageLinkedServiceTemplate": { "type": "string" },
+    "storageLinkedServiceParameters": { "type": "string" },
+    "storageDatasetsParameters": { "type": "string" },
+    "storageDatasetsTemplate": { "type": "string" },
+    "storageBackupPipelineTemplate": { "type": "string" },
+    "storageBackupPipelineParameters": { "type": "string" },
+    "storageRestorePipelineTemplate": { "type": "string" },
+    "storageRestorePipelineParameters": { "type": "string" }
+  },
+  "resources": [
+    {
+      "apiVersion": "2018-06-01",
+      "name": "createfactoryDeployment",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[parameters('storageFactoryTemplate')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parametersLink": {
+          "uri": "[parameters('storageFactoryParameters')]",
+          "contentVersion": "1.0.0.0"
+        }
+      }
+    },
+    {
+      "apiVersion": "2018-06-01",
+      "name": "createlinkedServiceDeployment",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[parameters('storageLinkedServiceTemplate')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parametersLink": {
+          "uri": "[parameters('storageLinkedServiceParameters')]",
+          "contentVersion": "1.0.0.0"
+        }
+      }
+    },
+    {
+      "apiVersion": "2018-06-01",
+      "name": "createDatasetsDeployment",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[parameters('storageDatasetsTemplate')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parametersLink": {
+          "uri": "[parameters('storageDatasetsParameters')]",
+          "contentVersion": "1.0.0.0"
+        }
+      }
+    },
+    {
+      "apiVersion": "2018-06-01",
+      "name": "createBackupPipelineDeployment",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[parameters('storageBackupPipelineTemplate')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parametersLink": {
+          "uri": "[parameters('storageBackupPipelineParameters')]",
+          "contentVersion": "1.0.0.0"
+        }
+      }
+    },
+    {
+      "apiVersion": "2018-06-01",
+      "name": "createRestorePipelineDeployment",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[parameters('storageRestorePipelineTemplate')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parametersLink": {
+          "uri": "[parameters('storageRestorePipelineParameters')]",
+          "contentVersion": "1.0.0.0"
+        }
+      }
+    }
+  ]
+}
