@@ -21,11 +21,11 @@
       "properties": {
         "mode": "Incremental",
         "templateLink": {
-          "uri": "[parameters('storageFactoryTemplate')]",
+          "uri": "https://raw.githubusercontent.com/v-liatba/PublicPlaceForGeneralStuff/master/StorageADFV2/LinkTemplatesDeployment/FactoryTemplateDeployment/storageFactoryTemplate",
           "contentVersion": "1.0.0.0"
         },
         "parametersLink": {
-          "uri": "[parameters('storageFactoryParameters')]",
+          "uri": "https://raw.githubusercontent.com/v-liatba/PublicPlaceForGeneralStuff/master/StorageADFV2/LinkTemplatesDeployment/FactoryTemplateDeployment/storageFactoryParameters",
           "contentVersion": "1.0.0.0"
         }
       }
@@ -37,11 +37,11 @@
       "properties": {
         "mode": "Incremental",
         "templateLink": {
-          "uri": "[parameters('storageLinkedServiceTemplate')]",
+          "uri": "https://raw.githubusercontent.com/v-liatba/PublicPlaceForGeneralStuff/master/StorageADFV2/LinkTemplatesDeployment/LinkedServicesTemplateDeployment/storageLinkedServiceTemplate",
           "contentVersion": "1.0.0.0"
         },
         "parametersLink": {
-          "uri": "[parameters('storageLinkedServiceParameters')]",
+          "uri": "https://raw.githubusercontent.com/v-liatba/PublicPlaceForGeneralStuff/master/StorageADFV2/LinkTemplatesDeployment/LinkedServicesTemplateDeployment/storageLinkedServiceParameters",
           "contentVersion": "1.0.0.0"
         }
       }
@@ -53,11 +53,11 @@
       "properties": {
         "mode": "Incremental",
         "templateLink": {
-          "uri": "[parameters('storageDatasetsTemplate')]",
+          "uri": "https://raw.githubusercontent.com/v-liatba/PublicPlaceForGeneralStuff/master/StorageADFV2/LinkTemplatesDeployment/DatasetsTemplateDeployment/storageDatasetsTemplate",
           "contentVersion": "1.0.0.0"
         },
         "parametersLink": {
-          "uri": "[parameters('storageDatasetsParameters')]",
+          "uri": "https://raw.githubusercontent.com/v-liatba/PublicPlaceForGeneralStuff/master/StorageADFV2/LinkTemplatesDeployment/DatasetsTemplateDeployment/storageDatasetsParameters",
           "contentVersion": "1.0.0.0"
         }
       }
@@ -69,11 +69,11 @@
       "properties": {
         "mode": "Incremental",
         "templateLink": {
-          "uri": "[parameters('storageBackupPipelineTemplate')]",
+          "uri": "https://raw.githubusercontent.com/v-liatba/PublicPlaceForGeneralStuff/master/StorageADFV2/LinkTemplatesDeployment/PipelinesTemplateDeployment/storageBackupPipelineParameters",
           "contentVersion": "1.0.0.0"
         },
         "parametersLink": {
-          "uri": "[parameters('storageBackupPipelineParameters')]",
+          "uri": "https://raw.githubusercontent.com/v-liatba/PublicPlaceForGeneralStuff/master/StorageADFV2/LinkTemplatesDeployment/PipelinesTemplateDeployment/storageBackupPipelineTemplate",
           "contentVersion": "1.0.0.0"
         }
       }
@@ -85,11 +85,11 @@
       "properties": {
         "mode": "Incremental",
         "templateLink": {
-          "uri": "[parameters('storageRestorePipelineTemplate')]",
+          "uri": "https://raw.githubusercontent.com/v-liatba/PublicPlaceForGeneralStuff/master/StorageADFV2/LinkTemplatesDeployment/PipelinesTemplateDeployment/storageRestorePipelineTemplate",
           "contentVersion": "1.0.0.0"
         },
         "parametersLink": {
-          "uri": "[parameters('storageRestorePipelineParameters')]",
+          "uri": "https://raw.githubusercontent.com/v-liatba/PublicPlaceForGeneralStuff/master/StorageADFV2/LinkTemplatesDeployment/PipelinesTemplateDeployment/storageRestorePipelineParameters",
           "contentVersion": "1.0.0.0"
         }
       }
