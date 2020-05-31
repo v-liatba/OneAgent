@@ -1,0 +1,162 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "tenantId": { "type": "string" },
+    "env": { "type": "string" },
+    "backupAscTableNames": { "type": "array" },
+    "adfStorageBackupName": { "type": "string" }
+  },
+  "variables": {
+    "isPublicCloud": "[if(equals(parameters('tenantId'), '72f988bf-86f1-41af-91ab-2d7cd011db47'), 'Yes', 'No')]",
+    "factoryName": "[concat('glob-rp-corruptionRecovery-core-', tolower(parameters('env')),'-df')]",
+    "factoryId": "[concat('Microsoft.DataFactory/factories/', variables('factoryName'))]",
+    "adfStorageBackupContainer": "[concat('glob-', tolower(parameters('env')),'-asc-backupscontainer')]",
+    "adfStorageName": "[concat(variables('storagePrefix'), 'asc')]",
+    "storagePrefix": "[concat('glob', tolower(parameters('env')))]",
+    "adfStorageBackup": "[concat(variables('adfStorageName'),'backup')]",
+    "adfStorageRestore": "[concat(variables('adfStorageName'),'restore')]",
+    "adfStorageBackupLink": "[concat(variables('adfStorageName'),'_backuplink')]",
+    "adfStorageRestoreLink": "[concat(variables('adfStorageName'),'_restorelink')]",
+    "adfBlobDatasetName": "blobDataset",
+    "adfDatasetName": "dataset"
+
+  },
+  "resources": [
+    {
+      "condition": "[equals(variables('isPublicCloud'), 'Yes')]",
+      "name": "[concat(variables('factoryName'),'/', parameters('backupAscTableNames')[copyIndex()].name, '_restoreOutput_', variables('adfStorageRestore'), '_', variables('adfDatasetName'))]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "copy": {
+        "name": "datasetblobcopy",
+        "count": "[length(parameters('backupAscTableNames'))]"
+      },
+      "properties": {
+        "linkedServiceName": {
+          "referenceName": "[variables('adfStorageRestoreLink')]",
+          "type": "LinkedServiceReference"
+        },
+        "annotations": [],
+        "type": "AzureTable",
+        "schema": [],
+        "typeProperties": {
+          "tableName": "[parameters('backupAscTableNames')[copyIndex()].name]"
+        },
+        "published": false,
+        "external": false,
+        "availability": {
+          "frequency": "Hour",
+          "interval": 1
+        }
+      },
+      "dependsOn": [
+        "[variables('factoryId')]",
+        "[concat(variables('factoryId'), '/linkedServices/',variables('adfStorageRestoreLink'))]"
+      ]
+    },
+    {
+      "condition": "[equals(variables('isPublicCloud'), 'Yes')]",
+      "name": "[concat(variables('factoryName'),'/', parameters('backupAscTableNames')[copyIndex()].name, '_restoreInput_', variables('adfStorageRestore'), '_', variables('adfBlobDatasetName'))]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "copy": {
+        "name": "datasetblobcopy",
+        "count": "[length(parameters('backupAscTableNames'))]"
+      },
+      "properties": {
+        "linkedServiceName": {
+          "referenceName": "[variables('adfStorageRestoreLink')]",
+          "type": "LinkedServiceReference"
+        },
+        "annotations": [],
+        "type": "Json",
+        "typeProperties": {
+          "location": {
+            "type": "AzureBlobStorageLocation",
+            "fileName": "[concat(parameters('backupAscTableNames')[copyIndex()].name, '_backup.json')]",
+            "folderPath": "[variables('adfStorageBackupContainer')]"
+          },
+          "published": false,
+          "external": true,
+          "availability": {
+            "frequency": "Hour",
+            "interval": 1
+          }
+        },
+        "dependsOn": [
+          "[variables('factoryId')]",
+          "[concat(variables('factoryId'), '/linkedServices/',variables('adfStorageRestoreLink'))]"
+        ]
+      }
+    },
+    {
+      "condition": "[equals(variables('isPublicCloud'), 'Yes')]",
+      "name": "[concat(variables('factoryName'),'/', parameters('backupAscTableNames')[copyIndex()].name, '_backupOutput_', variables('adfStorageBackup'), '_', variables('adfBlobDatasetName'))]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "copy": {
+        "name": "datasetblobcopy",
+        "count": "[length(parameters('backupAscTableNames'))]"
+      },
+      "properties": {
+        "linkedServiceName": {
+          "referenceName": "[variables('adfStorageBackupLink')]",
+          "type": "LinkedServiceReference"
+        },
+        "annotations": [],
+        "type": "Json",
+        "typeProperties": {
+          "location": {
+            "type": "AzureBlobStorageLocation",
+            "fileName": "[concat(parameters('backupAscTableNames')[copyIndex()].name, '_backup.json')]",
+            "folderPath": "[concat(variables('adfStorageBackupContainer'),'/',parameters('backupAscTableNames')[copyIndex()].name,'/{Year}/{Month}/{Day}/{Hour}')]"
+          },
+          "published": false,
+          "external": false,
+          "availability": {
+            "frequency": "Hour",
+            "interval": 1
+          }
+        },
+        "schema": {}
+      },
+      "dependsOn": [
+        "[variables('factoryId')]",
+        "[concat(variables('factoryId'), '/linkedServices/',variables('adfStorageBackupLink'))]"
+      ]
+    },
+    {
+      "condition": "[equals(variables('isPublicCloud'), 'Yes')]",
+      "name": "[concat(variables('factoryName'),'/', parameters('backupAscTableNames')[copyIndex()].name, '_backupInput_', variables('adfStorageBackup'), '_', variables('adfDatasetName'))]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "copy": {
+        "name": "datasettablecopy",
+        "count": "[length(parameters('backupAscTableNames'))]"
+      },
+      "properties": {
+        "linkedServiceName": {
+          "referenceName": "AzureTableStorage1",
+          "type": "LinkedServiceReference"
+        },
+        "annotations": [],
+        "type": "AzureTable",
+        "structure": "[parameters('backupAscTableNames')[copyIndex()].schema]",
+        "typeProperties": {
+          "tableName": "[parameters('backupAscTableNames')[copyIndex()].name]"
+        },
+        "published": false,
+        "external": true,
+        "availability": {
+          "frequency": "Hour",
+          "interval": 1
+        }
+      },
+      "dependsOn": [
+        "[variables('factoryId')]",
+        "[concat(variables('factoryId'), '/linkedServices/',variables('adfStorageBackupLink'))]"
+      ]
+    }
+  ]
+  }
